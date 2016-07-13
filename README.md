@@ -28,6 +28,7 @@ var ftps = new FTPS({
   host: 'domain.com', // required
   username: 'Test', // required
   password: 'Test', // required
+  key: '/location/path', //optional [use private key to access via sftp]
   protocol: 'sftp', // optional, values : 'ftp', 'sftp', 'ftps',... default is 'ftp'
   // protocol is added on beginning of host, ex : sftp://domain.com in this case
   port: 22, // optional
