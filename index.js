@@ -35,6 +35,7 @@ FTP.prototype.initialize = function (options) {
 		host: '',
 		username: '',
 		password: '',
+		key: '', //Connect to SFTP using private key (Optional)
 		escape: true,
 		retries: 1, // LFTP by default tries an unlimited amount of times so we change that here
 		timeout: 10, // Time before failing a connection attempt
@@ -47,7 +48,7 @@ FTP.prototype.initialize = function (options) {
 	};
 
 	// Extend options with defaults
-	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'port', 'escape', 'retries', 'timeout', 'retryInterval', 'retryIntervalMultiplier', 'requiresPassword', 'protocol', 'autoConfirm', 'cwd', 'additionalLftpCommands');
+	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'port', 'escape', 'retries', 'timeout', 'retryInterval', 'retryIntervalMultiplier', 'requiresPassword', 'protocol', 'autoConfirm', 'cwd', 'additionalLftpCommands', 'key');
 
 	// Validation
 	if (!opts.host) throw new Error('You need to set a host.');
@@ -96,7 +97,14 @@ FTP.prototype.exec = function (cmds, callback) {
 	cmd += 'set net:reconnect-interval-base ' + this.options.retryInterval + ';';
 	cmd += 'set net:reconnect-interval-multiplier ' + this.options.retryIntervalMultiplier + ';';
 	cmd += this.options.additionalLftpCommands + ";";
-	cmd += 'open -u "'+ this._escapeshell(this.options.username) + '","' + this._escapeshell(this.options.password) + '" "' + this.options.host + '";';
+  if(this.options.key !== ''){
+                  cmd += 'set sftp:connect-program ' +"ssh -x -a -i " + this.options.key + ';'; 
+                  cmd += 'open -u "'+ this._escapeshell(this.options.username) + '" "' + this.options.host + '";';
+  }
+  else {
+  	cmd += 'open -u "'+ this._escapeshell(this.options.username) + '","' + this._escapeshell(this.options.password) + '" "' + this.options.host + '";';
+  }
+	
 	cmd += this.cmds.join(';');
 	this.cmds = [];
 
