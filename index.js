@@ -35,8 +35,8 @@ FTP.prototype.initialize = function (options) {
 		host: '',
 		username: '',
 		password: '',
-		key: '', //Connect to SFTP using private key (Optional)
 		escape: true,
+		key: '', //Connect to SFTP using private key (Optional)
 		retries: 1, // LFTP by default tries an unlimited amount of times so we change that here
 		timeout: 10, // Time before failing a connection attempt
 		retryInterval: 5, // Time in seconds between attempts
@@ -48,7 +48,7 @@ FTP.prototype.initialize = function (options) {
 	};
 
 	// Extend options with defaults
-	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'port', 'escape', 'retries', 'timeout', 'retryInterval', 'retryIntervalMultiplier', 'requiresPassword', 'protocol', 'autoConfirm', 'cwd', 'additionalLftpCommands', 'key');
+	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'port', 'escape', 'retries', 'timeout', 'retryInterval', 'retryIntervalMultiplier', 'requiresPassword', 'protocol', 'autoConfirm', 'cwd', 'additionalLftpCommands','key');
 
 	// Validation
 	if (!opts.host) throw new Error('You need to set a host.');
@@ -93,19 +93,23 @@ FTP.prototype.exec = function (cmds, callback) {
 		cmd += 'set ' + this.options.protocol.toLowerCase() + ':auto-confirm yes;';
 
 	cmd += 'set net:max-retries ' + this.options.retries + ';';
+	if(this.options.key !== ''){
+	//	cmd += 'set ssl:key-file ' + this.options.key+ ';';
+		cmd += 'set sftp:connect-program ' +"ssh -x -a -i " + this.options.key + ';'; 
+	}
 	cmd += 'set net:timeout ' + this.options.timeout + ';';
 	cmd += 'set net:reconnect-interval-base ' + this.options.retryInterval + ';';
 	cmd += 'set net:reconnect-interval-multiplier ' + this.options.retryIntervalMultiplier + ';';
 	cmd += this.options.additionalLftpCommands + ";";
-  if(this.options.key !== ''){
-                  cmd += 'set sftp:connect-program ' +"ssh -x -a -i " + this.options.key + ';'; 
-                  cmd += 'open -u "'+ this._escapeshell(this.options.username) + '" "' + this.options.host + '";';
-  }
-  else {
-  	cmd += 'open -u "'+ this._escapeshell(this.options.username) + '","' + this._escapeshell(this.options.password) + '" "' + this.options.host + '";';
-  }
-	
+	if (this.options.key !== ''){
+		cmd += 'open -u "'+ this._escapeshell(this.options.username) + '","' + this._escapeshell(this.options.password) + '" "' + this.options.host + '";';
+	}else
+	{
+		cmd += 'open -u "'+ this._escapeshell(this.options.username) + '" "' + this.options.host + '";';
+	}
+
 	cmd += this.cmds.join(';');
+	console.log('cmds: '+ cmd);
 	this.cmds = [];
 
 	var spawnoptions;
