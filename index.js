@@ -94,7 +94,6 @@ FTP.prototype.exec = function (cmds, callback) {
 
 	cmd += 'set net:max-retries ' + this.options.retries + ';';
 	if(this.options.key !== '' && !this.options.password){
-	//	cmd += 'set ssl:key-file ' + this.options.key+ ';';
 		cmd += 'set sftp:connect-program ' +"ssh -x -a -i " + this.options.key + ';'; 
 	}
 	cmd += 'set net:timeout ' + this.options.timeout + ';';
